@@ -211,7 +211,7 @@ sign a
 eval_f :: (Num x, Ord x) => x -> x
 eval_f x
 	| x <= 0 = -x
-	| x < 2 = x^2
+	| x < 2 = x * x
 	| otherwise = 4
 
 -- б) Написать функцию, возвращающую текстовую характеристику ("hot", "warm", "cool", "cold")
@@ -264,27 +264,37 @@ eval_a_n 3 = 3
 eval_a_n x = eval_a_n (x-1) + eval_a_n (x-2) - 2 * eval_a_n (x-3)
 
 -- в) Вычислить, пользуясь рекурсией, n-ю степень числа a (n - целое):
-pow :: (Num x, Ord x) => x -> Int -> Num
 pow _ 0 = 1
+pow 0 _ = 0
 pow a n	
-	| n < 0 = 1 / pow a -n
-	| n > 0 = a * pow a (n-1)
+	| n < 0 = 1 / pow a (-n)
+	| otherwise = a * pow a (n - 1)
 
 
 -- г) Пользуясь ранее написанной функцией pow, вычислить сумму: 1^k + 2^k + ... + n^k.
-sum_nk = undefined
+sum_nk 1 _ = 1
+sum_nk n k = pow n k + sum_nk (n - 1) k
 
 -- д) Сумма факториалов чисел от 1 до n.
 sum_fact 1 = 1
-sum_fact n = undefined
+sum_fact n = fact n + sum_fact (n - 1)
   where
-    fact n = undefined
+    fact n
+	  | n == 1 = 1
+	  | otherwise = n * fact (n - 1)
 
 -- е) Количество цифр целого числа
-number_digits = undefined
+number_digits x
+	| x < 0 = number_digits (-x)
+	| x <= 9 = 1
+	| otherwise = 1 + number_digits (x `div` 10)
 
 -- ж) Проверить, является ли заданное число простым.
-isPrime = undefined
+isPrime :: Int -> Bool
+isPrime x = checkDivision (ceiling (sqrt (fromIntegral  x)))
+	where
+		checkDivision 1 = True
+		checkDivision n = (x `mod` n /= 0) && (checkDivision (n - 1))
 
 -- 8) Разное
 
@@ -296,6 +306,11 @@ isPrime = undefined
   а 1200 и 2000 — являются).
 -}
 
-nDays year = undefined
+nDays year 
+	| isLeap = 366
+	| otherwise = 365
   where
-    isLeap = undefined
+    isLeap
+		| (year `mod` 100 == 0) && (year `mod` 400 /= 0) = False
+		| (year `mod` 4 == 0) = True
+		| otherwise = False
