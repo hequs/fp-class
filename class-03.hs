@@ -1,4 +1,5 @@
 import Data.Char
+import Data.List
 
 {-
 Явная рекурсия в решениях хотя и допускается, но не приветствуется. Старайтесь обходиться стандартными
@@ -74,7 +75,15 @@ f13c c = filter (\x -> head x == c)
 -}
 
 nats :: [Integer]
-nats = iterate undefined 0
+nats = iterate (+1) 0
+
+evens = iterate (+2) 2
+
+f2c = iterate (\x -> (1 + x) / 2) 1
+
+f2d = take 26 $ iterate succ 'a'
+
+{- TODO -}
 
 {-
 3. Группировка списков.
@@ -87,6 +96,10 @@ nats = iterate undefined 0
      длиной n элементов со сдвигом относительно предыдущего подсписка на m элементов.
   e) Дан список. Определить длину самого длинного подсписка, содержащего подряд идущие одинаковые элементы.
 -}
+
+f3a = groupBy (\x y -> isDigit x && isDigit y)
+
+f3b = groupBy (\(x1,y1) (x2,y2) -> signum x1 * signum x2 + signum y1 * signum y2 == 2)
 
 f3d :: [a] -> Int -> Int -> [[a]]
 f3d xs n m = undefined
