@@ -49,7 +49,7 @@ f12a n = filter (_f12a n)
 			| n == 3 = x <= 0 && y <= 0
 			| otherwise = x > 0 && y < 0
 
-{- очень сложная формула, а Янушка пока не сделал -}
+{- TODO: очень сложная формула, а Янушка пока не сделал -}
 
 {-
  1.3 Дан список слов.
@@ -101,11 +101,15 @@ f3a = groupBy (\x y -> isDigit x && isDigit y)
 
 f3b = groupBy (\(x1,y1) (x2,y2) -> signum x1 * signum x2 + signum y1 * signum y2 == 2)
 
+f3c l n = map (take n) $ takeWhile (\x -> length x > 0) $ iterate (drop n) l
+
 f3d :: [a] -> Int -> Int -> [[a]]
-f3d xs n m = undefined
+f3d l n m = map (take n) $ takeWhile (\x -> length x > 0) $ iterate (drop m) l
 
 -- Должно быть True
 test_f3d = f3d [1..10] 4 2 == [[1,2,3,4],[3,4,5,6],[5,6,7,8],[7,8,9,10],[9,10]]
+
+f3e l = maximum $ map (length . head) $ filter (\x -> length x == 1) $ map (group) l
 
 {-
 4. Разные задачи.
@@ -119,3 +123,14 @@ test_f3d = f3d [1..10] 4 2 == [[1,2,3,4],[3,4,5,6],[5,6,7,8],[7,8,9,10],[9,10]]
     называется элемент, больший своих соседей.
  e) Дан список. Продублировать все его элементы.
 -}
+
+f4a l = length $ filter (\x -> isDigit x) l
+
+fibs = 0 : 1 : zipWith (+) fibs (tail fibs)
+f4b = takeWhile (<106) $ filter even fibs
+
+f4c n = (take n) . map head . sortBy (\x y -> compare (length y) (length x)) . group . sort
+
+f4d l = map (\(x, y, z) -> y) $ filter (\(x, y, z) -> x <= y && z <= y) $ zip3 ([minBound :: Int] ++ l) l (tail l ++ [minBound :: Int])
+
+f4e = concat . map (\x -> [x] ++ [x])
