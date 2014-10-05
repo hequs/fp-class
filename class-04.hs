@@ -180,6 +180,19 @@ f3e_test3 = f3e 13 == True
   3) произведение двух матриц.
 -}
 
+length' = foldr (\_ count -> count + 1) 0
+fst_elems = foldl (\acc (x:_) -> acc ++ [x]) []
+lst_elems = foldl (\acc (_:xs) -> acc ++ [xs]) []
+f51 list = fst $ foldl (\(res, rest) _ -> (res ++ [fst_elems rest], lst_elems rest)) ([], list) [1..length' list]
+f51_test1 = f51 [[1]] == [[1]]
+f51_test2 = f51 [[1,2],[3,4]] == [[1,3],[2,4]]
+f51_test3 = f51 [[1,2,3],[4,5,6],[7,8,9]] == [[1,4,7],[2,5,8],[3,6,9]]
+
+sum_list l1 l2 = fst $ foldl (\(res, ((x:xs), (y:ys))) _ -> (res ++ [x+y], (xs, ys))) ([], (l1, l2)) [1..length' l1]
+f52 l1 l2 = fst $ foldl (\(res, ((x:xs), (y:ys))) _ -> (res ++ [sum_list x y] , (xs, ys))) ([], (l1, l2)) [1..length' l1]
+f52_test1 = f52 [[1]] [[1]] == [[2]]
+f52_test2 = f52 [[1,2], [3,4]] [[11,12], [13,14]] == [[12,14], [16,18]]
+f52_test3 = f52 [[2]] [[0]] == [[2]]
 
 {-
  6. Реализовать левую свёртку, пользуясь правой. Проанализировать поведение собственной реализации
