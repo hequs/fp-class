@@ -24,6 +24,37 @@
      функции должно быть значение, возвращаемое по умолчанию).
 -}
 
+f1a = foldl (\acc x -> acc + if even x then x else 0) 0
+f1a_test1 = f1a [1,2,3,4,5,6] == 12
+f1a_test2 = f1a [1] == 0
+f1a_test3 = f1a [2] == 2
+
+f1b = foldl (\(s, p) x -> (s + x, p * x)) (0, 1)
+f1b_test1 = f1b [1,2,3] == (6,6)
+f1b_test2 = f1b [0,10] == (10,0)
+f1b_test3 = f1b [1] == (1,1)
+
+f1c list = s / l
+	where
+		(s, l) = foldl (\(sum, len) x -> (sum + x, len + 1)) (0, 0) list
+f1c_test1 = f1c [1,2,3,4] == 2.5
+f1c_test2 = f1c [-1,1] == 0
+f1c_test3 = f1c [0] == 0
+
+{-f1d = foldl (\min x -> if x < min then x else min) (maxBound :: Int)-}
+f1d = foldl1 min
+f1d_test1 = f1d [7,4,10,-5] == -5
+f1d_test2 = f1d [0] == 0
+f1d_test3 = f1d [1,2,3,4,5,6,7,8,9,10] == 1
+
+f1e list def = if min == (maxBound :: Int) then def else min
+	where
+		min = foldl (\min x -> if x < min && odd x then x else min) (maxBound :: Int) list
+f1e_test1 = f1e [2,4,6,8] 666 == 666
+f1e_test2 = f1e [-1,0,1] 666 == -1
+f1e_test3 = f1e [] 666 == 666
+
+
 {-
  2. Свёртки, формирующие списки
   a) Сформировать список, содержащий каждый второй элемент исходного.
@@ -42,6 +73,64 @@
      заданной функции двух аргументов к соответствующим элементам исходных списков.
 -}
 
+f2a list = fst $ foldr (\x (acc, count) -> (if even count then x : acc else acc, count + 1)) ([], 0) list
+f2a_test1 = f2a [1,2,3,4,5,6,7,8,9] == [1,3,5,7,9]
+f2a_test2 = null $ f2a []
+f2a_test3 = f2a [0] == [0]
+
+reverse' = foldl (\acc x -> x : acc) []
+
+f2b list n = reverse' $ fst $ foldl (\(acc, count) x-> (if count < n then x : acc else acc, count + 1)) ([], 0) list
+f2b_test1 = f2b [1,2,3,4,5,6,7,8,9] 3 == [1,2,3]
+f2b_test2 = null $ f2b [] 666
+f2b_test3 = f2b [1,2,3] 3 == [1,2,3]
+
+f2c list n = fst $ foldr (\x (acc, count) -> (if count < n then x : acc else acc, count + 1)) ([], 0) list
+f2c_test1 = f2c [1,2,3,4,5,6,7,8,9] 3 == [7,8,9]
+f2c_test2 = null $ f2c [] 666
+f2c_test3 = f2c [1,2,3] 3 == [1,2,3]
+
+f2d list = fst $ foldr (\x (acc, r) -> (if x < r then r : acc else acc, x)) ([], minBound :: Int) list
+f2d_test1 = f2d [1,2,3,4] == [2,3,4]
+f2d_test2 = null $ f2d []
+f2d_test3 = f2d [4,3,5,2,8,9] == [5,8,9]
+
+f2e list = fst $ foldr (\xl (acc, (x, xr)) -> (if x < xl && x < xr then x : acc else acc, (xl, x))) ([], (minBound :: Int, minBound :: Int)) list
+f2e_test1 = f2e [1,2,3,4] == []
+f2e_test2 = null $ f2d []
+f2e_test3 = f2e [4,3,5,2,8,9] == [3,2]
+
+f2f = foldr (\x0 (x:xs) -> if x0 == ' ' then if x == [] then (x:xs) else ([]:x:xs) else (([x0] ++ x):xs)) [[]]
+f2f_test1 = f2f "bla" == ["bla"]
+f2f_test2 = f2f "bla  bla" == ["bla", "bla"]
+f2f_test3 = f2f "bla  bla bla" == ["bla", "bla", "bla"]
+
+f2g n list = reverse' $ fst $ foldl (\(x:xs, count) x0 -> if count < n then ((reverse' ([x0] ++ reverse' x):xs), count + 1) else (([x0]:x:xs), 1)) ([[]], 0) list
+f2g_test1 = f2g 3 [1,2,3,4,5,6,7,8,9,10] == [[1,2,3],[4,5,6],[7,8,9],[10]]
+f2g_test2 = f2g 3 [1,2,3] == [[1,2,3]]
+f2g_test3 = f2g 1 [1,2,3] == [[1], [2], [3]]
+
+f2k pred = foldr f2k' []
+    where f2k' x acc
+              | pred x = x:acc
+              | otherwise = []
+f2k_test1 = f2k (<5) [1,2,3,4,5,6,7,8,9,0] == [1,2,3,4]
+f2k_test2 = f2k (even) [2,4,3,4,2] == [2,4]
+f2k_test3 = f2k (odd) [1,2,3,4,5,6,7,8,9,0] == [1]
+
+f2l n list = foldr (\x acc -> ((f2l' x) ++ acc)) [] list
+	where
+		f2l' x = foldl (\acc i -> x:acc) [] [1..n]
+f2l_test1 = null $ f2l 0 [1,2,3]
+f2l_test2 = f2l 1 [1,2,3] == [1,2,3]
+f2l_test3 = f2l 2 [1,2,3] == [1,1,2,2,3,3]
+
+f2m:: Eq a => [a] -> [a]
+f2m (y:ys) = reverse' $ foldl (\(x:xs) x0 -> if x0 == x then (x:xs) else (x0:x:xs)) [y] ys
+f2m_test1 = f2m [1,2,2,3,3,3] == [1,2,3]
+f2m_test2 = f2m [1,2,3] == [1,2,3]
+f2m_test3 = f2m [1,2,2,3,3,3,2,2,1] == [1,2,3,2,1]
+
 {-
  3. Использование свёртки как носителя рекурсии (для запуска свёртки можно использовать список типа [1..n]).
   a) Найти сумму чисел от a до b.
@@ -51,6 +140,32 @@
      n слагаемых).
   e) Проверить, является ли заданное целое число простым.
 -}
+
+f3a a b = foldl1 (+) [a..b]
+f3a_test1 = f3a 1 3 == 6
+f3a_test2 = f3a 0 0 == 0
+f3a_test3 = f3a (-1) 1 == 0
+
+fact x
+	| x == 0 = 1
+	| otherwise = foldl1 (*) [1..x]
+
+f3b a b = fst $ foldl (\(acc, x0) x -> (x0 * x + acc, x0 * x)) (fact a, fact a) [a+1..b]
+f3b_test1 = f3b 1 1 == 1
+f3b_test2 = f3b 1 5 == 153
+f3b_test3 = f3b 1 10 == 4037913
+
+f3c n = reverse' $ fst $ foldr (\_ (acc, (x1, x2)) -> (x1 + x2 : acc, (x2, x1 + x2))) ([1], (0, 1)) [2..n]
+f3c_test1 = f3c 1 == [1]
+f3c_test2 = f3c 2 == [1,1]
+f3c_test3 = f3c 5 == [1,1,2,3,5]
+
+f3e :: Int -> Bool
+f3e n = foldl (\res x -> (n `mod` x /= 0) && res) True [2..(ceiling $ sqrt $ fromIntegral n)]
+f3e_test1 = f3e 7 == True
+f3e_test2 = f3e 10 == False
+f3e_test3 = f3e 13 == True
+
 
 {-
  4. Решить задачу о поиске пути с максимальной суммой в треугольнике (см. лекцию 3) при условии,
@@ -70,3 +185,10 @@
  6. Реализовать левую свёртку, пользуясь правой. Проанализировать поведение собственной реализации
   на бесконечных списках и сравнить его с поведением оригинальной foldl.
 -}
+{- позаимствовал с http://www.haskell.org/haskellwiki/Foldl_as_foldr -}
+foldl' :: (a -> b -> a) -> a -> [b] -> a
+foldl' f a bs = foldr (\b g x -> g (f x b)) id bs a
+
+{- take 10 $ foldl (\acc x -> [x*2] ++ acc) [] [1..] -}
+{- foldl is technically tail-recursive, because the entire result expression is built before evaluating anything => foldl не работает на бесконечных списках -}
+{- foldr также не работает на данном бесконечном списке, так как ему для начала работы требуется последний элемент -}
