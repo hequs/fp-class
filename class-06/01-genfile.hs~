@@ -7,7 +7,6 @@
 
      ghci> :main 1000 "Привет, мир" hello.txt
 -}
-
 import System.Environment
 import Data.List
 

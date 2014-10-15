@@ -18,7 +18,7 @@ import Data.List
 
 main = do
 	(action : args) <- getArgs
-	putStr args {- doAction action args -}
+	putStr "123" {- doAction action args -}
 
 doAction action args
 	| action == 1 = putStr "123" {- countRows args -}
