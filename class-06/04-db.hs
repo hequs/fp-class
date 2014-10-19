@@ -13,4 +13,9 @@
 
 -}
 
-main = undefined
+import System.Environment
+
+main = do
+	[action, file] <- getArgs
+	case action of 
+		"1" -> genPointFile file

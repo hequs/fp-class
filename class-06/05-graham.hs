@@ -9,5 +9,14 @@
 -}
 
 import GrahamScan
+import System.Environment
 
-main = undefined
+toTuple (Point x y) = (x, y)
+
+toPoint (x, y) = (Point x y)
+
+main = do
+	[file] <- getArgs
+	contents <- readFile file
+	let res = graham_scan $ map (toPoint . read) (lines contents)
+	writeFile "graham_res.txt" (unlines $ map (show . toTuple) res)
