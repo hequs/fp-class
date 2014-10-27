@@ -17,3 +17,33 @@
 
    Параметром командной строки должно быть имя файла со сценарием указанного или подобного ему вида.
 -}
+
+import System.Environment
+import Data.Array.IArray
+import qualified Data.Array as Array
+import Data.List
+import Data.List.Split
+
+readMatrix fname = do
+	content <- readFile fname
+	let rows = lines content
+	return $ listArray ((1, 1), (length rows, length rows)) $ (map (\x -> read x :: Int) $ concat $ map words rows)
+
+writeMatrix fname m = do
+	let ((_, _), (size, _)) = bounds m
+	writeFile fname $ unlines $ map (unwords . map show) $ chunksOf size $ Array.elems m
+		
+sumMatrix :: Array (Int, Int) Int -> Array (Int, Int) Int -> IO (Array (Int, Int) Int)
+sumMatrix x y = do
+	return $ array resultBounds [((r, c), x!(r, c) + y!(r, c)) | r <- range(lr, ur), c <- range(lc, uc)]
+		where
+			bx@((lr, lc), (ur, uc)) = bounds x
+			resultBounds
+				| bx == bounds y = bx
+				| otherwise = error "matSum: incompatible bounds"
+
+main = do
+	m1 <- readMatrix "06_1.txt"
+	m2 <- readMatrix "06_2.txt"
+	m_sum <- sumMatrix m1 m2
+	writeMatrix "06_sum.txt" m_sum
