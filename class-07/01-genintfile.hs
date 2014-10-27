@@ -7,4 +7,20 @@
   4) количество строк в файле.
 -}
 
-main = undefined
+import System.Random
+import System.Environment
+import Data.List
+import Control.Monad
+
+genRow cols bounds = do
+	gen <- newStdGen
+	return $ unwords $ map show $ take cols (randomRs bounds gen :: [Int])
+
+genText rows cols bounds = do
+	text <- liftM unlines $ replicateM rows $ genRow cols (1, 9)
+	return text
+	
+main = do
+	[fname, min, max, cols, rows] <- getArgs	
+	text <- genText (read rows :: Int) (read cols :: Int) (read min :: Int, read max :: Int)
+	writeFile fname text

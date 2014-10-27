@@ -5,11 +5,14 @@
 -}
 
 import System.Environment
+import qualified Data.IntSet as Set
 
-readNumFile :: Num a => FilePath -> IO [a]
-readNumFile = undefined
+readNumFile fname = do
+	content <- readFile fname
+	return $ concatMap (map (\x -> read x :: Int) . words) $ lines content
 
-solve :: Num a => [[a]] -> (Int, [a])
-solve = undefined
+solve lists = (length list, list)
+	where
+		list = Set.toList $ foldl1 Set.intersection $ map Set.fromList lists
 
 main = getArgs >>= mapM readNumFile >>= print.solve

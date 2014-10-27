@@ -12,11 +12,15 @@ import Data.Array.IArray
 import System.Environment
 import Control.Monad
 
+seqGroupBy _ [] = []
+seqGroupBy eq (x:xs) = (x:ys) : seqGroupBy eq zs
+	where (ys,zs) = Seq.spanl (eq x) xs
+
 nub_set :: Set.IntSet -> Int
 nub_set = Set.size
 
 nub_list :: [Int] -> Int
-nub_list = undefined
+nub_list = length . group . sort
 
 nub_seq :: Seq.Seq a -> Int
 nub_seq = undefined
