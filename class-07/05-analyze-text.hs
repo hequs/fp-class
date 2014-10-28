@@ -44,7 +44,9 @@ task3_3 content = take 10 $ sortBy (flip compare `on` snd) $ Map.toList map0
     where 
 		list = filter (\x -> isLetter x || x == ' ') content
 		(map0, _, _) = foldl' (\(acc, p1, p0) x -> (if (x == ' ' || p0 == ' ' || p1 == ' ') then acc else incKey [p1:p0:x:[]] acc, p0, x)) (Map.empty, ' ', ' ') list	
-	
+
+--task4 = task2 + изощренные фильтры
+		
 main = do
 	(fname : _) <- getArgs
 	content <- readFile fname

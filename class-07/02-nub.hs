@@ -26,7 +26,7 @@ nub_seq :: Seq.Seq a -> Int
 nub_seq = undefined
 
 nub_arr :: Array Int Int -> Int
-nub_arr = undefined
+nub_arr = length . group . sort . Data.Array.IArray.elems
 
 main = do
   [fname] <- getArgs

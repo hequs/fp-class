@@ -17,7 +17,7 @@ genRow cols bounds = do
 	return $ unwords $ map show $ take cols (randomRs bounds gen :: [Int])
 
 genText rows cols bounds = do
-	text <- liftM unlines $ replicateM rows $ genRow cols (1, 9)
+	text <- liftM unlines $ replicateM rows $ genRow cols bounds
 	return text
 	
 main = do

@@ -40,10 +40,23 @@ sumMatrix x y = do
 			bx@((lr, lc), (ur, uc)) = bounds x
 			resultBounds
 				| bx == bounds y = bx
-				| otherwise = error "matSum: incompatible bounds"
+				| otherwise = error "sumMatrix: incompatible bounds"
 
+
+multMatrix :: Array (Int, Int) Int -> Array (Int, Int) Int -> IO (Array (Int, Int) Int)
+multMatrix x y = do
+	return $ array resultBounds [((i, j), sum [x!(i, k) * y!(k, j) | k <- range (lj,uj)]) | i <- range (li,ui), j <- range (lj',uj') ]
+        where ((li,lj),(ui,uj))         =  bounds x
+              ((li',lj'),(ui',uj'))     =  bounds y
+              resultBounds
+                | (lj,uj)==(li',ui')    =  ((li,lj'),(ui,uj'))
+                | otherwise             = error "multMatrix: incompatible bounds"
+				
 main = do
 	m1 <- readMatrix "06_1.txt"
 	m2 <- readMatrix "06_2.txt"
 	m_sum <- sumMatrix m1 m2
 	writeMatrix "06_sum.txt" m_sum
+	m_mult <- multMatrix m1 m2
+	writeMatrix "06_mult.txt" m_mult
+	
