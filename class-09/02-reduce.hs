@@ -1,4 +1,5 @@
 import System.Environment
+import System.Random
 
 {-
   Напишите функцию reduce, принимающую один целочисленный аргумент a и возвращающую 0,
@@ -7,7 +8,10 @@ import System.Environment
 -}
 
 reduce :: Integral a => a -> a
-reduce = undefined
+reduce a
+	| mod a 3 == 0 	= 0
+	| odd a 		= a * a
+	| otherwise 	= a * a * a
 
 {-
   Напишите функцию, применяющую функцию reduce заданное количество раз к значению в контексте,
@@ -15,7 +19,7 @@ reduce = undefined
 -}
 
 reduceNF :: (Functor f, Integral a) => Int -> f a -> f a
-reduceNF = undefined
+reduceNF n f = foldl (\acc _ -> fmap reduce acc) f [1..n]
 
 {-
   Реализуйте следующие функции-преобразователи произвольным, но, желательно, осмысленным и
@@ -23,17 +27,21 @@ reduceNF = undefined
 -}
 
 toList :: Integral a => [(a, a)]  -> [a]
-toList = undefined
+toList = fmap (\(x, y) -> x + y)
 
 toMaybe :: Integral a => [(a, a)]  -> Maybe a
-toMaybe = undefined
+toMaybe [] = Nothing
+toMaybe l = fmap (sum . toList) (Just l)
 
 toEither :: Integral a => [(a, a)]  -> Either String a
-toEither = undefined
+toEither [] = Left "Empty"
+toEither l = fmap (sum . toList) (Right l)
 
 -- воспользуйтесь в этой функции случайными числами
-toIO :: Integral a => [(a, a)]  -> IO a
-toIO = undefined
+toIO :: (Random a, Integral a) => [(a, a)]  -> IO a
+toIO l = do
+	gen <- newStdGen
+	return $ (sum $ toList l) * (fst $ randomR (-1, 1) gen)
 
 {-
   В параметрах командной строки задано имя текстового файла, в каждой строке
@@ -45,19 +53,37 @@ toIO = undefined
 -}
 
 parseArgs :: [String] -> (FilePath, Int)
-parseArgs = undefined
+parseArgs (fname : n : []) = (fname, read n)
 
+convert (s1 : s2 : _) = (read s1 :: Int, read s2 :: Int)	
 readData :: FilePath -> IO [(Int, Int)]
-readData = undefined
+readData fname = do
+	content <- readFile fname
+	return $ map (convert . words) (lines content)
 
 main = do
   (fname, n) <- parseArgs `fmap` getArgs
   ps <- readData fname
-  undefined
+  print $ reduceNF n (toList ps)
+  print $ reduceNF n (toMaybe ps)
   print $ reduceNF n (toEither ps)
   reduceNF n (toIO ps) >>= print
 
 {-
   Подготовьте несколько тестовых файлов, демонстрирующих особенности различных контекстов.
   Скопируйте сюда результаты вызова программы на этих файлах.
+-}
+
+{-
+*Main> :main "02_1.txt" 1
+[0,49]
+Just 1000
+Right 1000
+1000
+
+*Main> :main "02_2.txt" 2
+[2401]
+Just 2401
+Right 2401
+2401
 -}

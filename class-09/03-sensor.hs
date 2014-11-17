@@ -1,5 +1,7 @@
 import System.Environment
 import Data.Monoid
+import Data.List.Split
+import Data.Maybe
 
 {-
   Некоторый датчик генерирует по пять сигналов в сутки, часть из которых
@@ -15,12 +17,12 @@ type SensorData = [SensorValue]
    значений, полученных от датчика. -}
 
 getData :: String -> SensorData
-getData = undefined . lines
+getData content = map (\x -> if x == "-" then Nothing else (Just $ read x)) (lines content)
 
 {- Напишите функцию, группирующую данные по суткам. -}
 
 dataByDay :: SensorData -> [SensorData]
-dataByDay = undefined
+dataByDay = chunksOf 5
 
 {-
   Посчитайте минимальное значение среди показаний датчика,
@@ -36,7 +38,8 @@ dataByDay = undefined
 -}
 
 minData1 :: Bool -> [SensorData] -> Int
-minData1 needFirst = minimum . undefined
+minData1 True sData = minimum $ map (fromMaybe (minBound :: Int) . getFirst . mconcat . map First) sData
+minData1 False sData = minimum $ map (fromMaybe (minBound :: Int) . getLast . mconcat . map Last) sData
 
 {-
   Посчитайте минимальное значение среди данных,
@@ -52,14 +55,18 @@ minData1 needFirst = minimum . undefined
 -}
 
 minData2 :: Bool -> [SensorData] -> Int
-minData2 needSum = minimum . undefined
+minData2 True sData = minimum $ map (getSum . mconcat . map (Sum . fromJust) . filter isJust) sData
+minData2 False sData = minimum $ map (getProduct . mconcat . map (Product . fromJust) . filter isJust) sData
 
 {- Попробуйте объединить две предыдущие функции в одну. -}
 
 data SensorTask = NeedFirst | NeedLast | NeedSum | NeedProduct
 
 minData :: SensorTask -> [SensorData] -> Int
-minData st = minimum . undefined
+minData NeedFirst = minData1 True
+minData NeedLast = minData1 False
+minData NeedSum = minData2 True
+minData NeedProduct = minData2 False
 
 {-
   Пользуясь моноидами All, Any и любыми другими, выясните следующую информацию:
@@ -74,7 +81,21 @@ minData st = minimum . undefined
   Постарайтесь ответить на все вопросы, написав одну функцию.
 -}
 
+countNoData sData = length $ filter (==True) $ map (getAll . mconcat . map (All . isNothing)) sData
+countAllData sData = length $ filter (==True) $ map (getAll . mconcat . map (All . isJust)) sData
+countAnyData sData = length $ filter (==True) $ map (getAny . mconcat . map (Any . isJust)) sData
+countSumGreater sData n = length $ filter (>n) $ map (getSum . mconcat . map (Sum . fromJust) . filter isJust) sData
+countProdGreater sData n = length $ filter (>n) $ map (getProduct . mconcat . map (Product . fromJust) . filter isJust) sData
+countFirstGreater sData n = length $ filter (>n) $ map (fromMaybe (minBound :: Int) . getFirst . mconcat . map First) sData
+countLastGreater sData n = length $ filter (>n) $ map (fromMaybe (minBound :: Int) . getLast . mconcat . map Last) sData
+
 main = do
   fname <- head `fmap` getArgs
-  sData <- getData `fmap` readFile fname
-  undefined
+  sData <- fmap (dataByDay . getData) (readFile fname)
+  putStrLn $ "NoDataCount: " ++ (show $ countNoData sData)
+  putStrLn $ "AllDataCount: " ++ (show $ countAllData sData)
+  putStrLn $ "AnyDataCount: " ++ (show $ countAnyData sData)
+  putStrLn $ "SumGreaterCount: " ++ (show $ countSumGreater sData 6)
+  putStrLn $ "ProdGreaterCount: " ++ (show $ countProdGreater sData 2)
+  putStrLn $ "FirstGreaterCount: " ++ (show $ countFirstGreater sData 1)
+  putStrLn $ "LastGreaterCount: " ++ (show $ countLastGreater sData 1000)
