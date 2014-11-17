@@ -9,4 +9,22 @@
    блока do не допускается).
 -}
 
-main = undefined
+import Control.Monad
+import Data.Ord
+import Data.List
+
+data Student = Student { name :: String, age :: Int, group :: String }
+
+instance Show Student where
+	show (Student n a g) = n ++ "\n" ++ (show a) ++ "\n" ++ g
+
+readStudents [] = []
+readStudents (name : age : group : list) = [Student name (read age) group] ++ (readStudents list)
+
+writeStudents [] = []
+writeStudents (s : list) = [show s] ++ (writeStudents list)
+	
+readSFile fname = (readStudents . lines) `liftM` (readFile fname)
+writeSFile fname list = writeFile fname (unlines $ writeStudents list)
+
+main = ((++) `liftM` (readSFile "01_s1.txt") `ap` (readSFile "01_s2.txt")) >>= (writeSFile "01_s.txt" . sortBy (comparing name))

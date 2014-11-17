@@ -8,3 +8,8 @@ ImperialLight Cuirass
 ImperialLight Helmet
 Elven Cuirass
 Glass Boots
+Hide Shield
+Hide Boots
+Hide Gauntlets
+Hide Cuirass
+Hide Helmet

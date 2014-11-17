@@ -1,5 +1,6 @@
 import Control.Monad
 import Data.List
+import Data.Maybe
 import System.Environment
 
 {-
@@ -18,13 +19,38 @@ data ArmorItem = ArmorItem ArmorKind ArmorType
 data ArmorKit = ArmorKit ArmorKind [ArmorType]
    deriving (Show, Eq)
 
+{- loadInventory -}
 loadInventory :: FilePath -> IO [ArmorItem]
-loadInventory = undefined
+loadInventory fname = readFile fname >>= return . (map readArmorItem . lines)
+	where readArmorItem = (\(k : t : _) -> ArmorItem (read k) (read t)) . words
+
+
+{- buildArmorKit -}
+filterItems k list = list >>= (\x -> if checkArmorKind k x then [x] else [])
+	where checkArmorKind k0 (ArmorItem k _) = k == k0
 
 buildArmorKit :: ArmorKind -> [ArmorItem] -> Maybe ArmorKit
-buildArmorKit = undefined
+buildArmorKit k list = if ((length $ nub fList) == (length fullSet)) then Just (ArmorKit k fullSet) else Nothing
+	where
+		fList = filterItems k list
+		fullSet = [Shield ..]
+
+
+{- buildKits -}
+{-
+getEachKindKits list = kinds >>= return . (\x -> buildArmorKit x list)
+	where kinds = [Chitin ..]
+	
+getAllKits list = getEachKindKits list >>= (\x -> if isJust x then [fromJust x] else [])
+-}
+
+getAllKits list = kinds >>= return . (\x -> buildArmorKit x list) >>= (\x -> if isJust x then [fromJust x] else [])
+	where kinds = [Chitin ..]
 
 buildKits :: [ArmorItem] -> Maybe [ArmorKit]
-buildKits = undefined
+buildKits list = if (length kits > 0) then Just kits else Nothing
+	where kits = getAllKits list
 
-main = (head `liftM` getArgs) >>= loadInventory >>= undefined >>= print
+	
+{- main -}	
+main = (head `liftM` getArgs) >>= loadInventory >>= return . buildKits >>= print

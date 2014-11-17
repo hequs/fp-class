@@ -1,3 +1,5 @@
+import Data.List
+
 {-
   Следующие типы задают множество состояний, алфавит и функцию переходов
   недетерминированного конечного автомата (НКА).
@@ -17,29 +19,50 @@ nfa_ex = (['0','1'], [1, 2], 1, tf, [2])
     tf 1 '0' = [1]
     tf 1 '1' = [1, 2]
 
+	
 -- Напишите функцию, определяющую, корректно ли задан НКА
 isCorrect :: NFA -> Bool
-isCorrect = undefined
+isCorrect (a, s, is, td, aSt) = undefined
 
--- в дальнейшем может пригодиться функция whileM,
--- которая собирает результаты в список, пока истинно
--- заданное условие
-whileM :: m Bool -> m a -> m [a]
-whileM = undefined
 
 -- Напишите функцию, определяющую, допускает ли НКА заданное слово 
 accept :: NFA -> String -> Bool
-accept = undefined
+accept (a, s, is, td, aSt) word = length (intersect (foldl makeStep [is] word) aSt) > 0
+	where
+		makeStep states c = states >>= (\state -> td state c)
+		
 
 -- Постройте ещё как минимум три примера НКА
+-- Распознает цепочки вида 0101...
 nfa1 :: NFA
-nfa1 = undefined
+nfa1 = (['0','1'], [1, 2, 3], 1, tf, [3])
+  where
+    tf 1 '0' = [2]
+    tf 1 '1' = []
+    tf 2 '0' = []
+    tf 2 '1' = [3]
+    tf 3 '0' = [2]
+    tf 3 '1' = []
 
+-- Распознает цепочки с предпоследним 0
 nfa2 :: NFA
-nfa2 = undefined
+nfa2 = (['0','1'], [1, 2, 3], 1, tf, [3])
+  where
+    tf 1 '0' = [1, 2]
+    tf 1 '1' = [1]
+    tf 2 '0' = [3]
+    tf 2 '1' = [3]
+    tf 3 '0' = []
+    tf 3 '1' = []
 
+-- Распознает цепочки вида 0000...
 nfa3 :: NFA
-nfa3 = undefined
+nfa3 = (['0','1'], [1, 2], 1, tf, [2])
+  where
+    tf 1 '0' = [1, 2]
+    tf 1 '1' = [1]
+    tf 2 '0' = []
+    tf 2 '1' = []
 
 {-
   Распределите заданные строки в соответствии с распознающими
@@ -47,4 +70,4 @@ nfa3 = undefined
 -}
 
 classify :: [NFA] -> [String] -> [(NFA, [String])]
-classify = undefined
+classify nfas words = nfas >>= (\nfa -> [(nfa, filter (accept nfa) words)])

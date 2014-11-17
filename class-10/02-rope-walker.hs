@@ -1,4 +1,6 @@
 import Control.Monad 
+import Data.List
+
 {-
   Модифицируйте имеющуюся реализацию задачи о канатоходце (лекция 9) следующим образом:
   1) реализуйте загрузку входных данных из файла следующего вида:
@@ -25,23 +27,55 @@ type Pole = (Birds, Birds)
 
 balance = 3
 
-updatePole :: Pole -> Maybe Pole
-updatePole p = if unbalanced p then Nothing else Just p
-  where
-    unbalanced (l, r) = abs (l - r) > balance
+unbalanced (l, r) = abs (l - r) > balance
 
-landLeft :: Birds -> Pole -> Maybe Pole
+updatePole :: Pole -> Either String Pole
+updatePole (l, r)
+	| unbalanced (l, r) && l > r = Left "Too many on left"
+	| unbalanced (l, r) && l <= r = Left "Too many on right"
+	| otherwise = Right (l, r)
+
+landLeft :: Birds -> Pole -> Either String Pole
 landLeft n (left, right) = updatePole (left + n, right)
 
-landRight :: Birds -> Pole -> Maybe Pole
+landRight :: Birds -> Pole -> Either String Pole
 landRight n (left, right) = updatePole (left, right + n)
 
-banana :: Pole -> Maybe Pole
-banana = const Nothing
+banana :: Pole -> Either String Pole
+banana = const (Left "Banana")
 
-tests = all test [1..3]
-  where
-    test 1 = (return (0, 0) >>= landLeft 1 >>= landRight 4 
-              >>= landLeft (-1) >>= landRight (-2)) == Nothing
-    test 2 = (return (0, 0) >>= landRight 2 >>= landLeft 2 >>= landRight 2) == Just (2, 4)
-    test 3 = (return (0, 0) >>= landLeft 1 >>= banana >>= landRight 1) == Nothing
+{- 3 -}
+landBoth :: Birds -> Pole -> Either String Pole
+landBoth n (left, right) = Right (left + n, right + n)
+
+{- 4 -}
+unlandAll = const (Right (0, 0))
+
+{- 1 -}
+getParametr row = read (drop 2 row) :: Int
+
+readAction "B" = banana
+readAction "U" = unlandAll
+readAction row
+	| (head row) == 'M' = landBoth $ getParametr row
+	| (head row) == 'L' = landLeft $ getParametr row
+	| (head row) == 'R' = landRight $ getParametr row
+
+readActions [] = []
+readActions (row : list) = [readAction row] ++ readActions list
+
+readAFile = (readActions . lines) `liftM` (readFile "02.txt")
+
+doActions actions = foldr (<=<) return actions (0, 0)
+
+launchRopewalker = readAFile >>= return . doActions
+
+{- 5 -}
+test 1 = (return (0, 0) >>= landLeft 1 >>= landRight 4 
+              >>= landLeft (-1) >>= landRight (-2)) == Left "Too many on right"
+test 2 = (return (0, 0) >>= landRight 2 >>= landLeft 2 >>= landRight 2) == Right (2, 4)
+test 3 = (return (0, 0) >>= landLeft 1 >>= banana >>= landRight 1) == Left "Banana"
+test 4 = (return (0, 0) >>= landLeft 1 >>= unlandAll) == Right (0, 0)
+test 5 = (return (0, 0) >>= landBoth 1) == Right (1, 1)
+	
+tests = all test [1..5]
