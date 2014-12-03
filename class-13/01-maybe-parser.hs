@@ -1,3 +1,6 @@
+import Control.Monad
+import Data.Maybe
+
 {-
    Тип Parser может быть определён следуюшим образом:
 -}
@@ -9,10 +12,13 @@ newtype Parser a = Parser { apply :: String -> Maybe (a, String) }
 -}
 
 instance Monad Parser where
-  return x = undefined
-  p >>= q = undefined
-  fail _ = undefined
+  return x = Parser (\s -> Just (x, s))
+  p >>= q = Parser (\s0 -> apply p s0 >>= (\(x, s1) -> apply (q x) s1))
+  fail _ = Parser(\x -> Nothing)
 
 instance MonadPlus Parser where
-  mzero = undefined
-  p `mplus` q = undefined
+  mzero = Parser(\x -> Nothing)
+  p `mplus` q = Parser (\s ->
+	let ps = apply p s in
+		if isNothing ps then apply q s else ps)
+
