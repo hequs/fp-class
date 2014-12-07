@@ -3,6 +3,7 @@ import SimpleParsers
 import ParseNumbers
 import Control.Applicative hiding (many, optional)
 import Control.Monad
+import FloatParser
 
 {-
    Добавьте поддержку вещественных и комплексных чисел из второго упражнения.
@@ -11,7 +12,7 @@ import Control.Monad
    проанализировать).
 -}
 
-data Expr = Con Int | Bin Op Expr Expr
+data Expr = Con (Float, Float) | Bin Op Expr Expr
   deriving Show
 data Op = Plus | Minus | Mul | Div
   deriving Show
@@ -37,6 +38,6 @@ expr = token (term >>= rest addop term)
     binop (s1, cons1) (s2, cons2) =
           (symbol s1 >> return cons1) <|>
           (symbol s2 >> return cons2)
-    constant = Con `liftM` natural
+    constant = Con `liftM` complexOrFloat
 
 

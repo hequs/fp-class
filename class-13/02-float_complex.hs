@@ -10,17 +10,11 @@ import Control.Monad
 digitToFloat :: Int -> Float
 digitToFloat x = fromIntegral x :: Float
 
-{-
-leftPart = (+) <$> (digitToFloat `liftM` integer) <*> rest
-rest = (char '.' >> rightPart)
-rightPart = ((foldr (\n m -> (m + n) / 10) 0) . (map digitToFloat)) `liftM` many digit
--}
-
 float :: Parser Float
 float = (*) <$> minus <*> float'
 	where
 		minus = (char '-' >> return (-1)) <|> return 1
-		float' = (+) <$> (digitToFloat `liftM` integer) <*> rightPart
+		float' = (+) <$> (digitToFloat `liftM` integer) <*> (rightPart <|> return 0)
 		rightPart = char '.' >> (foldr (\n m -> (m + (digitToFloat n)) / 10) 0) `liftM` many digit
 
 
@@ -31,22 +25,28 @@ float = (*) <$> minus <*> float'
   
 -}
 complex :: Parser (Float, Float)
-complex = undefined
+complex = bracket "(" ")" $ (,) <$> float <*> (char ',' >> (token float))
 
 {-
   Напишите парсер для списка комплексных чисел (разделитель — точка с запятой),
   заключённого в квадратные скобки.
 -}
 complexList :: Parser [(Float, Float)]
-complexList = undefined
+complexList = bracket "[" "]" $ sepBy (token complex) (symbol ";")
 
 {-
   Модифицируйте предыдущий парсер таким образом, чтобы в исходной строке
   могли встречаться как комплексные числа, так и вещественные (мнимая часть
   при этом должна считаться равной нулю).
 -}
+floatToComplex :: Float -> (Float, Float)
+floatToComplex x = (x, 0)
+
+complexOrFloat :: Parser (Float, Float)
+complexOrFloat = complex <|> (floatToComplex `liftM` float)
+
 complexList2 :: Parser [(Float, Float)]
-complexList2 = undefined
+complexList2 = bracket "[" "]" $ sepBy (token complexOrFloat) (symbol ";")
 
 {-
    Модифицируйте предыдущий парсер таким образом, чтобы компоненты списка
@@ -54,6 +54,6 @@ complexList2 = undefined
    требуемое с помощью вспомогательных парсеров, допускающих повторное применение.
 -}
 complexList3 :: Parser [(Float, Float)]
-complexList3 = undefined
+complexList3 = bracket "[" "]" $ sepBy (token complexOrFloat) (symbol ",")
 
 

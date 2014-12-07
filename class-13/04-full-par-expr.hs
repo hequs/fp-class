@@ -15,15 +15,18 @@ data Op = Plus | Minus
 -}
 
 {-
-expr  ::=  nat | '(' expr op expr ')'
+expr  ::=  nat' | '(' expr op expr ')'
 op    ::=  '+' | '-'
+nat'  ::=  '(' nat ')' | nat
 nat   ::=  {digit}+
 digit ::=  '0' | '1' | '2' | ... | '9'
 -}
 
+
 expr :: Parser Expr
-expr = token (constant <|>  bracket "(" ")"  binary)
+expr = token (constant' <|> bracket "(" ")" binary)
   where
+    constant' = constant <|> (bracket "(" ")" constant)
     constant = Con `liftM` natural
     binary = do
       e1 <- expr
