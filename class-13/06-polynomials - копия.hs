@@ -3,7 +3,6 @@
 import Parser
 import SimpleParsers
 import ParseNumbers
-import FloatParser
 import Control.Applicative hiding (many, optional)
 import Control.Monad
 import Data.Ord
@@ -25,11 +24,11 @@ data Poly = Poly [Summand]
   Реализуйте парсер для многочленов (примеры в файле poly.txt).
 -}
 
-sign :: Parser Float
-sign = (char '-' >> return (-1.0)) <|> (char '+' >> return 1.0)
+sign :: Parser Int
+sign = (char '-' >> return (-1)) <|> (char '+' >> return 1)
 
 factor :: Parser Float
-factor = float <|> ((*) <$> sign <*> token (optional 1 float))
+factor = integer <|> ((*) <$> sign <*> token (optional 1 float))
 
 power :: Parser Int
 power = char 'x' >> (optional 1 (char '^' >> integer))
@@ -46,49 +45,40 @@ poly = Poly `liftM` (many summand)
    Напишите функцию, которая вычисляет частное и остаток при делении многочлена на многочлен.
 -}
 
+s_power :: Summand -> Factor
+s_power (Summand (_, p)) = p
+
 s_factor:: Summand -> Factor
 s_factor (Summand (f, _)) = f
 
-s_power :: Summand -> Power
-s_power (Summand (_, p)) = p
+poly_power :: Poly -> Int	--старшая степень
+poly_power (Poly (s : _)) = s_power s
 
-poly_factor :: [Summand] -> Factor	--коэфициент при старшей степени
-poly_factor (s : _) = s_factor s
+poly_factor :: Poly -> Int	--коэфициент при старшей степени
+poly_factor (Poly (s : _)) = s_factor s
 
-poly_power :: [Summand] -> Power		--старшая степень
-poly_power (s : _) = s_power s
+poly_power_compare :: Poly -> Poly -> Ordering
+poly_power_compare p1 p2 = compare (poly_power p1) (poly_power p2)
 
-poly_fill :: [Summand] -> [Summand]
-poly_fill l = if s_power (last l) == 0 then (poly_fill' l) else (poly_fill' (l ++ [Summand (0,0)]))
+poly_fill :: Poly -> Poly
+poly_fill (Poly l) = if s_power (last l) == 0 then Poly (poly_fill' l) else Poly (poly_fill' (l ++ [Summand (0,0)]))
 	where
 		poly_fill' (s : []) = [s]
-		poly_fill' (s : rest) = if (next_sp == poly_power rest) then (s : poly_fill' rest) else (s : poly_fill' (Summand (0, next_sp) : rest))
+		poly_fill' (s : rest) = if (next_sp == poly_power (Poly rest)) then (s : poly_fill' rest) else (s : poly_fill' (Summand (0, next_sp) : rest))
 			where next_sp = s_power s - 1
 
-poly_mul :: [Summand] -> Summand -> [Summand]
-poly_mul l (Summand (f, p)) = map (\(Summand (f0, p0)) -> (Summand (f0 * f, p0 + p))) l
-
-poly_sub :: [Summand] -> [Summand] -> [Summand]
-poly_sub l1 l2 = zipWith (\(Summand (f1, p1)) (Summand (f2, p2)) -> (Summand (f1-f2, p1))) (poly_fill l1) (poly_fill l2)
-
-divmod' ch dm dt = if (poly_power dt > poly_power dm) then (ch, dm) else divmod' (ch ++ [diff]) (poly_sub dm (poly_mul dt diff)) dt
-	where
-		diff = Summand ((poly_factor dm) / (poly_factor dt), (poly_power dm) - (poly_power dt))
-
+poly_mul :: Poly -> Summand -> Poly
+poly_mul (Poly l) (Summand (f, p)) = Poly (map (\(Summand (f0, p0)) -> (Summand (f0 * f, p0 + p))) l)
+		
 divmod :: Poly -> Poly -> (Poly, Poly)
-divmod (Poly dm) (Poly dt) = (Poly p1, Poly p2)
-	where (p1, p2) = divmod' [] dm dt
+divmod = undefined
 
 {-
    Напишите функцию, которая вычисляет наибольший общий делитель двух многочленов.
 -}
-
 poly_gcd :: Poly -> Poly -> Poly
-poly_gcd p1 p2 = poly_gcd' p1 p2
-	where
-		poly_gcd' p1 (Poly []) = p1
-		poly_gcd' p1 p2 = poly_gcd' p2 (snd $ divmod p1 p2)
-  
+poly_gcd = undefined
+
 {-
    Напишите функцию, которая вычисляет наибольший общий делитель списка многочленов.
    Не забудьте воспользоваться свёрткой.
