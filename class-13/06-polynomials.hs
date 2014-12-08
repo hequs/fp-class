@@ -5,6 +5,7 @@ import SimpleParsers
 import ParseNumbers
 import Control.Applicative hiding (many, optional)
 import Control.Monad
+import Data.Ord
 
 {-
    Определите тип для многочлена с вещественными коэффициентами.
@@ -21,40 +22,34 @@ data Poly = Poly [Summand]
 {-
   Реализуйте парсер для многочленов (примеры в файле poly.txt).
 -}
-integer' :: Parser Int
-integer' = (*) <$> minus <*> (token natural)
-  where
-    minus = (char '-' >> return (-1)) <|> return 1
-	
-summand = Summand `liftM` ((,) <$> coef <*> power)
+
+sign :: Parser Int
+sign = (char '-' >> return (-1)) <|> (char '+' >> return 1)
+
+factor :: Parser Int
+factor = integer <|> ((*) <$> sign <*> token (optional 1 integer))
+
+power :: Parser Int
+power = char 'x' >> (optional 1 (char '^' >> integer))
+
+summand = Summand `liftM` token (with_factor <|> without_factor)
 	where
-		coef = integer' <|> return 1
-		power = ((char 'x') >> power') <|> return 0
-		power' = (char '^' >> integer) <|> return 1
-
-p_sum (Poly p1) (Poly p2) = Poly (p1 ++ p2)
-
-summand_to_ploy s = Poly [s]
-
-{-
+		with_factor = (,) <$> factor <*> optional 0 power
+		without_factor = (,) <$> return 1 <*> power
+		
 poly :: Parser Poly
-poly = token (summand >>= rest addop summand)
-	where
-		rest op unit e1 = optional e1 $ do 
-			e2 <- op >> unit
-			rest op unit $ p_sum e1 e2
-		addop = binop ("+", Plus) ("-", Minus)
-		binop (s1, cons1) (s2, cons2) =
-			(symbol s1 >> return cons1) <|>
-			(symbol s2 >> return cons2)
--}
-
-poly :: Parser Poly
-poly = Poly `liftM` (token (many summand))
+poly = Poly `liftM` (many summand)
 
 {-
    Напишите функцию, которая вычисляет частное и остаток при делении многочлена на многочлен.
 -}
+
+poly_power :: Poly -> Int
+poly_power (Poly (Summand (_, p) : _)) = p
+
+poly_power_compare :: Poly -> Poly -> Ordering
+poly_power_compare p1 p2 = compare (poly_power p1) (poly_power p2)
+
 divmod :: Poly -> Poly -> (Poly, Poly)
 divmod = undefined
 

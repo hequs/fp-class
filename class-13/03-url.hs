@@ -51,7 +51,7 @@ parse_maybe p d = p <|> return d
 url = URL <$>
       scheme <*>
 	  (string "://" >> (parse_maybe auth ("", ""))) <*>
-      (get_to ":/?#") <*>	  
+	  (get_to ":/?#") <*>	  
 	  (parse_maybe port "") <*>
 	  (parse_maybe path "") <*>
 	  (parse_maybe params "") <*>
